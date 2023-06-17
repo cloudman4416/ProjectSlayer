@@ -1,3 +1,9 @@
-for i, v in pairs(game:GetService("ReplicatedStorage").Player_Data.cloudman55555.EquippedItemStats:GetChildren()) do
+local player_data = nil
+for i, v in pairs(game:GetService("ReplicatedStorage").Player_Data:GetDescendants()) do
+    if v.Name == player_name then
+        player_data = v
+    end
+end
+for i, v in pairs(player_data.EquippedItemStats:GetChildren()) do
     v.Value = getgenv().item
 end
