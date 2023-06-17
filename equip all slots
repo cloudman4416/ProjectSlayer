@@ -1,0 +1,3 @@
+for i, v in pairs(game:GetService("ReplicatedStorage").Player_Data.cloudman55555.EquippedItemStats:GetChildren()) do
+    v.Value = getgenv().item
+end
