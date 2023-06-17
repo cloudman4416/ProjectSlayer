@@ -1,5 +1,5 @@
 local player_data = nil
-for i, v in pairs(game:GetService("ReplicatedStorage").Player_Data:GetDescendants()) do
+for i, v in pairs(game:GetService("ReplicatedStorage").Player_Data:GetChildren()) do
     if v.Name == player_name then
         player_data = v
     end
