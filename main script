@@ -1,0 +1,268 @@
+-- local variables
+
+local player = game.Players.LocalPlayer
+local player_char =  player.Character
+local player_name = player.Name
+local player_data = nil
+local player_value = nil
+local ts = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- small start script
+
+for i, v in pairs(game:GetService("ReplicatedStorage").Player_Data:GetChildren()) do
+    if v.Name == player_name then
+        player_data = v
+    end
+end
+
+for i, v in pairs(game:GetService("ReplicatedStorage").PlayerValues:GetChildren()) do
+    if v.Name == player_name then
+        player_value = v
+    end
+end
+-- tables
+
+local bosses = {
+    "Shiron",
+    "Zanegutsu Kuuchie",
+    "Sabito",
+    "Sanemi",
+    "Yahaba",
+    "Nezuko",
+    "Slasher",
+    "Susamaru",
+    "Giyu",
+    "Snow Trainee",
+    "Sound Trainee",
+    "Akaza",
+    "Douma",
+    "Enme",
+    "Renpeke",
+    "Inosuke",
+    "Muichiro Tokito",
+    "Rengoku",
+    "Swampy",
+    "Tengen"
+}
+
+-- toggle status
+local tweenspeed = 300
+local infinitestamina = true
+local killaura = true
+local akeza_invible = false
+local method = "fist_combat"
+local allbossfarm = false
+local collectchest = true
+local distancefromboss = 8
+
+-- killaura ags
+
+local killaurargs1 = {
+    [1] = "fist_combat",
+    [2] = game:GetService("Players").LocalPlayer,
+    [3] = game:GetService("Players").LocalPlayer.Character,
+    [4] = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart,
+    [5] = game:GetService("Players").LocalPlayer.Character.Humanoid,
+    [6] = 919,
+    [7] = "ground_slash"
+}
+
+local killaurargs2 = {
+    [1] = "fist_combat",
+    [2] = game:GetService("Players").LocalPlayer,
+    [3] = game:GetService("Players").LocalPlayer.Character,
+    [4] = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart,
+    [5] = game:GetService("Players").LocalPlayer.Character.Humanoid,
+    [6] = math.huge,
+    [7] = "ground_slash"
+}
+
+-- functions
+
+function charexist()
+    task.spawn(function()
+        if player_char then
+            return true
+        end
+    end)
+end
+
+function noclip()
+    for i, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+        if v:IsA("BasePart") and v.CanCollide == true then
+            v.CanCollide = false
+        end
+    end
+end
+
+function tp(p1)
+    task.spawn(function()
+        pcall(function()
+            player_char.HumanoidRootPart.CFrame = p1
+        end)
+    end)
+end
+
+function tweento(obj)
+    Distance = (obj.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+    if Distance < 150 then
+        Speed = 6*tweenspeed
+    elseif Distance < 200 then
+        Speed = 5*tweenspeed
+    elseif Distance < 300 then
+        Speed = 4*tweenspeed
+    elseif Distance < 500 then
+        Speed = 3*tweenspeed
+    elseif Distance < 1000 then
+        Speed = 2*tweenspeed
+    elseif Distance >= 1000 then
+        Speed = 1*tweenspeed
+    end
+
+    local tween = ts:Create(player_char.HumanoidRootPart,
+    TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
+    {CFrame = obj})
+
+    if not player_char.HumanoidRootPart:FindFirstChild("BodyVelocity") then
+        antifall = Instance.new("BodyVelocity", player_char.HumanoidRootPart)
+        antifall.Velocity = Vector3.new(0, 0, 0)
+        noclipE = RunService.Stepped:Connect(noclip) 
+        tween:Play()
+    end
+
+    tween.Completed:Connect(function()
+        antifall:Destroy()
+        noclipE:Disconnect()
+    end)
+end
+
+function infstam()
+    task.spawn(function()
+        infinitestamina = true
+        repeat task.wait()
+            player_value.Stamina.Value = 99999
+        until not infinitestamina
+    end)
+end
+-- const running functions
+
+task.spawn(function()
+    while task.wait() do
+        killaurargs1[1] = method
+        killaurargs2[2] = method
+        if killaura then
+            repeat task.wait()
+                --pcall(function()
+                    if player:FindFirstChild("combotangasd123") and killaura then
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs1))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs2))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs1))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs2))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs1))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs2))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs1))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs2))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs1))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs2))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs1))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs2))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs1))
+                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S:FireServer(unpack(killaurargs2))
+                        task.wait(2.5)
+                    else local combo = Instance.new("IntValue")
+                        combo.Name = "combotangasd123"
+                        combo.Parent = player
+                    end
+                --end)
+            until not killaura
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait() do
+        if collectchest then
+            repeat task.wait()
+                pcall(function()
+                    for a, b in pairs(game.Workspace.Debree:GetChildren()) do
+                        if b.Name == "Loot_Chest" then
+                            for c, d in pairs(b.Drops:GetChildren()) do
+                                b.Add_To_Inventory:InvokeServer(d.Name)
+                            end
+                            b:Destroy()
+                        end
+                    end 
+                end)
+            until not collectchest
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait() do
+        if allbossfarm then
+            for i, v in pairs(game:GetService("Workspace").Mobs.Bosses:GetDescendants()) do
+                if table.find(bosses, v.Name) and v:IsA("Model") and allbossfarm then
+                    pcall(function()
+                        tweento(v:GetModelCFrame()*CFrame.new(0,0,distancefromboss))
+                        wait(Distance/Speed)
+                        v.Humanoid.Died:connect(function()
+                            v:Destroy()
+                        end)
+                        repeat task.wait()
+                            tp(v.HumanoidRootPart.CFrame*CFrame.new(0,0,distancefromboss))
+                        until not allbossfarm or not v:IsDescendantOf(workspace)
+                    end)
+                end
+            end
+        end
+    end
+end)
+
+-- ANNOYING GUI PART
+local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
+
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+
+local Window = Library:CreateWindow({
+    Title = 'CloudHub Project Slayer Ouwohana',
+    Center = true,
+    AutoShow = true,
+    TabPadding = 8,
+    MenuFadeTime = 0.2
+})
+
+local Tabs = {
+    AutoFarmSection = Window:AddTab('Main'),
+    ['UI Settings'] = Window:AddTab('UI Settings'),
+}
+
+local LeftGroupBox = Tabs.AutoFarmSection:AddLeftGroupbox('Groupbox')
+LeftGroupBox:AddToggle('auto all bosses', {
+    Text = 'autofarm all bosses',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'autofarm all bosses', -- Information shown when you hover over the toggle
+
+    Callback = function(Value)
+        if Value then
+            allbossfarm = true
+        else
+            allbossfarm = false
+        end
+    end
+})
+
+LeftGroupBox:AddToggle('kill aura', {
+    Text = 'killaura',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'killaura', -- Information shown when you hover over the toggle
+
+    Callback = function(Value)
+        if Value then
+            killaura = true
+        else
+            killaura = false
+        end
+    end
+})
