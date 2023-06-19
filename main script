@@ -49,7 +49,7 @@ local bosses = {
 -- toggle status
 local tweenspeed = 300
 local infinitestamina = true
-local killaura = true
+local killaura = false
 local akeza_invible = false
 local method = "fist_combat"
 local allbossfarm = false
@@ -184,16 +184,18 @@ task.spawn(function()
     while task.wait() do
         if collectchest then
             repeat task.wait()
-                pcall(function()
-                    for a, b in pairs(game.Workspace.Debree:GetChildren()) do
-                        if b.Name == "Loot_Chest" then
-                            for c, d in pairs(b.Drops:GetChildren()) do
-                                b.Add_To_Inventory:InvokeServer(d.Name)
+                if collectchest then
+                    pcall(function()
+                        for a, b in pairs(game.Workspace.Debree:GetChildren()) do
+                            if b.Name == "Loot_Chest" then
+                                for c, d in pairs(b.Drops:GetChildren()) do
+                                    b.Add_To_Inventory:InvokeServer(d.Name)
+                                end
+                                b:Destroy()
                             end
-                            b:Destroy()
-                        end
-                    end 
-                end)
+                        end 
+                    end)
+                end
             until not collectchest
         end
     end
@@ -235,11 +237,15 @@ local Window = Library:CreateWindow({
 
 local Tabs = {
     AutoFarmSection = Window:AddTab('Main'),
+    Misc = Window:AddTab('Misc'),
     ['UI Settings'] = Window:AddTab('UI Settings'),
 }
 
-local LeftGroupBox = Tabs.AutoFarmSection:AddLeftGroupbox('Groupbox')
-LeftGroupBox:AddToggle('auto all bosses', {
+
+--farming tab
+
+local farmingtab = Tabs.AutoFarmSection:AddLeftGroupbox('[FARMING]')
+farmingtab:AddToggle('auto all bosses', {
     Text = 'autofarm all bosses',
     Default = false, -- Default value (true / false)
     Tooltip = 'autofarm all bosses', -- Information shown when you hover over the toggle
@@ -253,10 +259,10 @@ LeftGroupBox:AddToggle('auto all bosses', {
     end
 })
 
-LeftGroupBox:AddToggle('kill aura', {
+farmingtab:AddToggle('kill aura', {
     Text = 'killaura',
     Default = false, -- Default value (true / false)
-    Tooltip = 'killaura', -- Information shown when you hover over the toggle
+    Tooltip = '', -- Information shown when you hover over the toggle
 
     Callback = function(Value)
         if Value then
@@ -266,3 +272,22 @@ LeftGroupBox:AddToggle('kill aura', {
         end
     end
 })
+
+farmingtab:AddToggle('auto collect chest', {
+    Text = 'auto collect chests',
+    Default = false, -- Default value (true / false)
+    Tooltip = '', -- Information shown when you hover over the toggle
+
+    Callback = function(Value)
+        if Value then
+            collectchest = true
+        else
+            collectchest = false
+        end
+    end
+})
+
+--misc tab
+
+local mistgb = Tabs.Misc:AddRightGroupbox('Misc')
+mistgb:AddButton('Unload', function() Library:Unload() end)
