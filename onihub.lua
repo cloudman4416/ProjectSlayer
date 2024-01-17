@@ -320,7 +320,7 @@ GlobalGKA:AddToggle({
             local args = {
                 [1] = "arrow_knock_back_damage",
                 [2] = game:GetService("Players").LocalPlayer.Character,
-                [3] = target.HumanoidRootPart.CFrame,
+                [3] = target:GetModelCFrame(),
                 [4] = target,
                 [5] = 300,
                 [6] = 300
