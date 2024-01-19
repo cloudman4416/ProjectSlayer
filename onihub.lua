@@ -90,7 +90,11 @@ function noclip()
         end
     end
 end
-
+local vim = game:GetService('VirtualInputManager')
+function pressKey(key)
+    vim:SendKeyEvent(true, key, false, game)
+    vim:SendKeyEvent(false, key, false, game)
+end
 
 function tweento(obj)
     local tweenspeed = 200
@@ -393,7 +397,7 @@ GlobalGKA:AddToggle({
             game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
 
         end
-        wait(0.1)
+        wait(0.2)
     end
 end})
 spawn(function()
@@ -1033,15 +1037,15 @@ extras:AddButton({
 mugan:AddButton({
     Name = "Insta Clash",
     Callback = function()
-        local args = {
-            [1] = "Change_Value",
-            [2] = workspace.Debree.clash_folder[game.Players.LocalPlayer.Name.."vsEnmu"][game.Players.LocalPlayer.Name],
-            [3] = 10000
-        }
-
-        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("To_Server"):WaitForChild("Handle_Initiate_S"):FireServer(unpack(args))
+        spawn(function()
+            repeat task.wait()
+                pressKey(game:GetService("Players").LocalPlayer.PlayerGui.universal_client_scripts.Clashing2.Clash_Ui2.Holder.Front.Text)
+                task.wait()
+            until game:GetService("Players").LocalPlayer.PlayerGui.universal_client_scripts.Clashing2.Clash_Ui2.Enabled ~= true
+        end)
     end
 })
+
 extras:AddButton({
     Name = "Anti Afk",
     Callback = function(value)
