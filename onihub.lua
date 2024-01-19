@@ -1035,13 +1035,27 @@ extras:AddButton({
 })
 
 mugan:AddButton({
-    Name = "Insta Clash",
+    Name = "Auto Clash",
     Callback = function()
         spawn(function()
             repeat task.wait()
                 pressKey(game:GetService("Players").LocalPlayer.PlayerGui.universal_client_scripts.Clashing2.Clash_Ui2.Holder.Front.Text)
                 task.wait()
             until game:GetService("Players").LocalPlayer.PlayerGui.universal_client_scripts.Clashing2.Clash_Ui2.Enabled ~= true
+        end)
+    end
+})
+
+mugan:AddButton({
+    Name = "Insta Clash",
+    Callback = function()
+        spawn(function()
+            local args = {
+                [1] = "Change_Value",
+                [2] = workspace:WaitForChild("Debree"):WaitForChild("clash_folder"):WaitForChild(game.Players.LocalPlayer.Name.."vsEnmu"):WaitForChild(game.Players.LocalPlayer.Name),
+                [3] = 10000
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("To_Server"):WaitForChild("Handle_Initiate_S"):FireServer(unpack(args))
         end)
     end
 })
