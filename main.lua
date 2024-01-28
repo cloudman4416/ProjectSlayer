@@ -26,6 +26,7 @@ end
 -- tables
 
 local bosses = {"Inosuke", "Akeza", "Enme", "Rengoku", "Muichiro Tokito", "Sound Trainee", "Tengen",  "Douma", "Renpeke", "Swampy",}
+local serverboss = {"Akaza", "Douma", "Enmu", "Flame_Trainee", "Inosuke", "Muichiro", "Rengoku", "Snow_Trainee", "Sound_Trainee", "Swampy", "Tengen"}
 local bossCFrame = {
     ["Rengoku"] = CFrame.new(3656, 673, -345),
     ["Akeza"] = CFrame.new(2010, 556, -128),
@@ -49,18 +50,17 @@ local selectedorbs = {}
 
 local godmode = false
 local godmodemethod = nil
-local tweenspeed = 400
+local tweenspeed = 300
 local infinitestamina = true
 local killaura = false
 local akeza_invible = false
 local method = "fist_combat"
 local allbossfarm = false
 local collectchest = false
-local arrowgka = false
-local bringmob = false
 local thunderka = false
 local webhooktog = false
 local autoorb = false
+local alwaysday = false
 
 -- remotes args
 local killaurargs1 = {
@@ -150,9 +150,32 @@ function findMob(hrp)
     end
 end
 
+function findPlayer(hrp)
+    for i, target in pairs(game.Players:GetPlayers()) do
+        if target ~= player and target.Character:FindFirstChild("HumanoidRootPart") then
+            return target.Character
+        end
+    end
+end
+
+function closestMob()
+    local closestMob
+    local closestDistance = math.huge
+    for _, mob in ipairs(workspace.Mobs:GetDescendants()) do
+        if mob:IsA("Model") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+            local distance = (mob.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if distance < closestDistance then
+                closestMob = mob
+                closestDistance = distance
+            end
+        end
+    end
+    return closestMob
+end
+
 function webhookf(message)
-    task.spawn(function()
-        request({
+        task.spawn(function()
+            request({
             Url = webhook,
             Method = "POST",
             Headers = {
@@ -167,7 +190,7 @@ end
 
 function findBoss(name, hrp)
     for i, v in pairs(workspace.Mobs:GetDescendants()) do
-        if v:IsA("Model") and v.Name == name and v:FindFirstChild("Humanoid") and v:FindFirstChild("Humanoid").Health > 0 then
+        if v:IsA("Model") and v.Name == name and v:FindFirstChild("Humanoid") then
             if hrp then
                 if v:FindFirstChild('HumanoidRootPart') then
                     return v
@@ -317,83 +340,101 @@ end)
 ]]
 
 -- ANNOYING GUI PART
-local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
 
-local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
 
-local Window = Library:CreateWindow({
-    Title = 'CloudHub Project Slayer',
-    Center = true,
-    AutoShow = true,
-    TabPadding = 8,
-    MenuFadeTime = 0.2
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+
+local Window = OrionLib:MakeWindow({Name = "OniHub|Project Slayers🎆🥶", HidePremium = false, SaveConfig = false, ConfigFolder = "OniSave"})
+
+local AutoFarm = Window:MakeTab({
+    Name = "AutoFarm",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
 })
 
-local Tabs = {
-    ['Autofarm'] = Window:AddTab('Autofarm Section'),
-    ['Misc'] = Window:AddTab('Misc'),
-    ['Dungeon'] = Window:AddTab('Dungeon'),
-    ['Buffs'] = Window:AddTab('Buffs'),
-    ['UI Settings'] = Window:AddTab('UI Settings'),
-}
+local KillAuras = Window:MakeTab({
+    Name = "Kill Auras",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local Misc = Window:MakeTab({
+    Name = "Misc",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local Buffs = Window:MakeTab({
+    Name = "Buffs",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local WebHook = Window:MakeTab({
+    Name = "Webhook settings",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local UISettings = Window:MakeTab({
+    Name = "UI Settings",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
 
 -- ui tab
-local tabsettingsgb = Tabs['UI Settings']:AddLeftGroupbox('Ui Settings')
+local tabsettingsgb = UISettings:AddSection({
+        Name = "Unload"
+})
 
-tabsettingsgb:AddButton('Unload', function() Library:Unload() end)
+
+
+tabsettingsgb:AddButton({
+	Name = "Unload GUI",
+	Callback = function()
+        OrionLib:Destroy()
+  	end    
+})
+
 
 -- farming tab
-local farmsettingsgb = Tabs['Autofarm']:AddLeftGroupbox('farm settings')
-farmsettingsgb:AddDropdown('weapon selection', {
-    Values = {"Combat", "Scythe", "Sword", "War Fans", "Claws"},
-    Default = 1,
-    Multi = false,
+local farmsettingsgb = AutoFarm:AddSection({
+	Name = "Farm Settings"
+})
 
-    Text = 'Select the weapon you want',
-    Tooltip = '',
-
-    Callback = function(Value)
-        updweapon(Value)
-    end
+farmsettingsgb:AddDropdown({
+	Name = "weapon selection",
+	Default = "Combat",
+	Options = {"Combat", "Scythe", "Sword", "War Fans", "Claws"},
+	Callback = function(Value)
+		updweapon(Value)
+	end    
 })
 
 
-farmsettingsgb:AddSlider('Tween Speed', {
-    Text = 'Tween Speed',
-    Default = 400,
-    Min = 100,
-    Max = 500,
-    Rounding = 1,
-    Compact = false,
-
-    Callback = function(Value)
-        tweenspeed = Value
-    end
-})
-
-farmsettingsgb:AddDropdown('farmpos', {
-    Values = {"Above", "Below", "Behind"},
-    Default = 3,
-    Multi = false,
-
-    Text = 'farming position',
-    Tooltip = '',
-
-    Callback = function(Value)
-        updfarmpos(Value)
-    end
+farmsettingsgb:AddSlider({
+	Name = "Tween Speed",
+	Min = 100,
+	Max = 500,
+	Default = 300,
+	Color = Color3.fromRGB(255,255,255),
+	Increment = 1,
+	ValueName = "TweenSpeed",
+	Callback = function(Value)
+		tweenspeed = Value
+	end    
 })
 
 
-local farmingtab = Tabs['Autofarm']:AddLeftGroupbox('           [autofarm]')
+local autofarmgb = AutoFarm:AddSection({
+	Name = "Auto Farm Main"
+})
 
-farmingtab:AddToggle('auto boss', {
-    Text = 'auto boss',
-    Default = false,
-    Tooltip = nil,
-
-    Callback = function(state)
-        allbossfarm = state
+autofarmgb:AddToggle({
+	Name = "auto boss",
+	Default = false,
+	Callback = function(state)
+		allbossfarm = state
         task.spawn(function()
             while allbossfarm do
                 noclip()
@@ -412,8 +453,10 @@ farmingtab:AddToggle('auto boss', {
                         tween.Completed:Wait()
                         local boboss = findBoss(boss, true)
                         if boboss ~= nil  and allbossfarm then
-                            while boboss.Humanoid.Health > 0 and allbossfarm do
-                                tpto(boboss.HumanoidRootPart.CFrame * CFrame.new(0, 0, 10))
+                            while boboss:FindFirstChild("Humanoid").Health > 0 and allbossfarm do
+                                pcall(function()
+                                    tpto(boboss.HumanoidRootPart.CFrame * CFrame.new(0, 0, 10))
+                                end)
                                 task.wait()
                             end
                         end
@@ -423,15 +466,15 @@ farmingtab:AddToggle('auto boss', {
             end
             antifall:Destroy()
         end)
-    end
+	end    
 })
 
 
 
-farmingtab:AddToggle('kill aura', {
-    Text = 'killaura (m1)',
+
+autofarmgb:AddToggle({
+    Name = 'killaura (m1)',
     Default = false,
-    Tooltip = '',
 
     Callback = function(Value)
         if Value then
@@ -442,166 +485,9 @@ farmingtab:AddToggle('kill aura', {
     end
 })
 
-farmingtab:AddToggle('arrow ka', {
-    Text = 'Arrow KA',
+autofarmgb:AddToggle({
+    Name = 'auto collect chests',
     Default = false,
-    Tooltip = 'dont activate using bring mobs',
-    Callback = function(state)
-        arrowgka = state
-        task.spawn(function()
-            while arrowgka do 
-                local target = findMob(true)
-                if target then
-                    local args = {
-                        [1] = "arrow_knock_back_damage",
-                        [2] = player.Character,
-                        [3] = target:GetModelCFrame(),
-                        [4] = target,
-                        [5] = 300,
-                        [6] = 300
-                    }
-
-                    game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-
-                end
-                task.wait(0.1)
-            end
-        end)
-        spawn(function()
-            while arrowgka do
-                local args = {
-                    [1] = "skil_ting_asd",
-                    [2] = player,
-                    [3] = "arrow_knock_back",
-                    [4] = 5
-                }
-
-                game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-                task.wait(10)
-            end
-        end)
-    end
-})
-
-if workspace:FindFirstChild("PrivateServerDummies") then
-    farmingtab:AddToggle('arrow ka (ps dummie)', {
-        Text = 'Arrow KA (ps dummies)',
-        Default = false,
-        Tooltip = 'farm damages on dummies',
-        Callback = function(state)
-            arrowgka = state
-            task.spawn(function()
-                while arrowgka do 
-                    local target = workspace.PrivateServerDummies["Dummy (Infinite Hp)"]
-                    if target then
-                        local args = {
-                            [1] = "arrow_knock_back_damage",
-                            [2] = player.Character,
-                            [3] = target:GetModelCFrame(),
-                            [4] = target,
-                            [5] = 300,
-                            [6] = 300
-                        }
-
-                        game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-
-                    end
-                    task.wait(0.1)
-                end
-            end)
-            spawn(function()
-                while arrowgka do
-                    local args = {
-                        [1] = "skil_ting_asd",
-                        [2] = player,
-                        [3] = "arrow_knock_back",
-                        [4] = 5
-                    }
-
-                    game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-                    task.wait(6)
-                end
-            end)
-        end
-    })
-end
-
-farmingtab:AddToggle('Bring Mobs (Arrow)', {
-    Text = 'Bring Mobs (Arrow)',
-    Default = false,
-    Tooltip = 'dont activate using arrow ka',
-
-    Callback = function(state)
-    bringmob = state
-    task.spawn(function()
-        while bringmob do 
-            local target = findMob(true)
-            if target then
-                local args = {
-                    [1] = "piercing_arrow_damage",
-                    [2] = player,
-                    [3] = target:GetModelCFrame(),
-                    [4] = 50000
-                }
-                game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-            end
-            task.wait(0.3)
-        end
-    end)
-    spawn(function()
-        while bringmob do
-            local args = {
-                [1] = "skil_ting_asd",
-                [2] = player,
-                [3] = "arrow_knock_back",
-                [4] = 5
-            }
-            game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-            task.wait(15)
-        end
-    end)
-end})
-
-farmingtab:AddToggle('Thunder KA', {
-    Text = 'ThunderKA',
-    Default = false,
-    Tooltip = 'very unstable, report any error at Cloudman789#3700',
-
-    Callback = function(state)
-    thunderka = state
-    task.spawn(function()
-        while thunderka do 
-            local target = findMob(true)
-            if target then
-                local args = {
-                    [1] = "ricespiritdamage",
-                    [2] = player,
-                    [3] = target:GetModelCFrame(),
-                    [4] = 150
-                }
-                game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-            end
-            task.wait(0.5)
-        end
-    end)
-    spawn(function()
-        while thunderka do
-            local args = {
-                [1] = "skil_ting_asd",
-                [2] = player,
-                [3] = "Thunderbreathingrapidslashes",
-                [4] = 5
-            }
-            game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
-            task.wait(15)
-        end
-    end)
-end})
-
-farmingtab:AddToggle('auto collect chest', {
-    Text = 'auto collect chests',
-    Default = false,
-    Tooltip = '',
 
     Callback = function(Value)
         if Value then
@@ -613,15 +499,304 @@ farmingtab:AddToggle('auto collect chest', {
 })
 
 
+-- KA TAB
+
+local arrowgb = KillAuras:AddSection({
+	Name = "Arrow KA (11/10)"
+})
+
+local ArrowKA = false
+local BringMobs = false
+local BreakBossesArrow = false
+local PlayerKA = false
+
+arrowgb:AddToggle({
+    Name = 'Arrow KA',
+    Default = false,
+    Callback = function(state)
+        ArrowKA = state
+        task.spawn(function()
+            while ArrowKA do 
+                local target =  findMob(true)
+                if target then
+                    local args = {
+                        [1] = "arrow_knock_back_damage",
+                        [2] = player.Character,
+                        [3] = target:GetModelCFrame(),
+                        [4] = target,
+                        [5] = math.huge,
+                        [6] = math.huge
+                    }
+
+                    game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
+                end
+                task.wait()
+            end
+        end)
+        task.spawn(function()
+            while ArrowKA do
+                local args = {
+                    [1] = "skil_ting_asd",
+                    [2] = player,
+                    [3] = "arrow_knock_back",
+                    [4] = 5
+                }
+
+                game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
+                task.wait(6)
+            end
+        end)
+    end
+})
+
+arrowgb:AddToggle({
+    Name = 'Bring Mobs',
+    Default = false,
+    Callback = function(state)
+    BringMobs = state
+    task.spawn(function()
+        while BringMobs do 
+            local target = findMob(true)
+            if target then
+                repeat task.wait()
+                    local args = {
+                        [1] = "piercing_arrow_damage",
+                        [2] = player,
+                        [3] = target:GetModelCFrame(),
+                        [4] = math.huge
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
+                until target.Humanoid.Health <= 0 or not BringMobs
+            end
+            task.wait()
+        end
+    end)
+    task.spawn(function()
+        while BringMobs do
+            local args = {
+                [1] = "skil_ting_asd",
+                [2] = player,
+                [3] = "arrow_knock_back",
+                [4] = 5
+            }
+            game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
+            task.wait(6)
+        end
+    end)
+end})
+
+arrowgb:AddToggle({
+    Name = 'Player KA',
+    Default = false,
+    Callback = function(state)
+        PlayerKA = state
+        task.spawn(function()
+            while PlayerKA do 
+                local target = findPlayer(true)
+                if target then
+                    local args = {
+                        [1] = "arrow_knock_back_damage",
+                        [2] = player.Character,
+                        [3] = target:GetModelCFrame(),
+                        [4] = target,
+                        [5] = math.huge,
+                        [6] = math.huge
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
+                end
+                task.wait(0.01)
+            end
+        end)
+        task.spawn(function()
+            while PlayerKA do
+                local args = {
+                    [1] = "skil_ting_asd",
+                    [2] = player,
+                    [3] = "arrow_knock_back",
+                    [4] = 5
+                }
+
+                game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
+                task.wait(6)
+            end
+        end)
+    end
+})
+
+
+arrowgb:AddButton({
+    Name = 'Break Bosses',
+    Callback = function()
+        BreakBossesArrow = true
+        task.spawn(function()
+            if BreakBossesArrow then
+                for _, mob in pairs(game:GetService("ReplicatedStorage").Npcs:GetChildren()) do
+                    if table.find(serverboss, mob.Name) then
+                        repeat task.wait()
+                            local args = {
+                                [1] = "arrow_knock_back_damage",
+                                [2] = player.Character,
+                                [3] = mob:GetModelCFrame(),
+                                [4] = mob,
+                                [5] = 300,
+                                [6] = 300
+                            }
+
+                            game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
+                            task.wait(0.1)
+                        until mob.Humanoid.Health <= 0
+                    end
+                end
+                BreakBossesArrow = false
+            end
+        end)
+        task.spawn(function()
+            while breakserver do
+                local args = {
+                    [1] = "skil_ting_asd",
+                    [2] = player,
+                    [3] = "arrow_knock_back",
+                    [4] = 5
+                }
+
+                game:GetService("ReplicatedStorage").Remotes.To_Server.Handle_Initiate_S_:InvokeServer(unpack(args))
+                task.wait(6)
+            end
+        end)
+    end
+})
+
+local swampgb = KillAuras:AddSection({
+	Name = "Swamp KA (7/10)"
+})
+
+local PuddleKA = false
+
+swampgb:AddToggle({
+    Name = 'Swamp KA',
+    Default = false,
+    Callback = function(state)
+    PuddleKA = state
+    task.spawn(function()
+        while PuddleKA do 
+            local target = findMob(true)
+            if target then
+                local args = {
+                    [1] = "swamp_puddle_damage",
+                    [2] = player.Character,
+                    [3] = target:GetModelCFrame()
+                }          
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("To_Server"):WaitForChild("Handle_Initiate_S"):FireServer(unpack(args))                
+            end
+            task.wait(0.3)
+        end
+    end)
+    task.spawn(function()
+        while PuddleKA do
+            local args = {
+                [1] = "skil_ting_asd",
+                [2] = player,
+                [3] = "swampbda_swamp_puddle",
+                [4] = 5
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("To_Server"):WaitForChild("Handle_Initiate_S"):FireServer(unpack(args))        
+            task.wait(9.5)
+        end
+    end)
+end})
+
+local bloodbgb = KillAuras:AddSection({
+	Name = "Blood Burst KA (5/10)"
+})
+
+local MineKA = false
+
+bloodbgb:AddToggle({
+    Name = 'Mines KA',
+    Default = false,
+    Callback = function(state)
+    MineKA = state
+    task.spawn(function()
+        task.wait(0.5)
+        while MineKA do 
+            local target = closestMob()
+            if target then
+                local args = {
+                    [1] = "land_mines_place",
+                    [2] = player.Character,
+                    [3] = target:GetModelCFrame()
+                }    
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("To_Server"):WaitForChild("Handle_Initiate_S"):FireServer(unpack(args))
+                local folder = workspace.Debree:WaitForChild(player.Name .. "'s explosive land mines")
+                task.wait(0.2)
+                for i, mine in pairs(folder:GetChildren()) do
+                    mine.DetonateEvent:FireServer()
+                end
+            end
+            task.wait()
+        end
+    end)
+    task.spawn(function()
+        while MineKA do
+            local args = {
+                [1] = "skil_ting_asd",
+                [2] = game:GetService("Players").LocalPlayer,
+                [3] = "blood_burst_explosive_land_mines",
+                [4] = 5
+            }    
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("To_Server"):WaitForChild("Handle_Initiate_S"):FireServer(unpack(args))    
+            task.wait(30)
+        end
+    end)
+end})
+
+local icegb = KillAuras:AddSection({
+	Name = "Ice KA (1/10)"
+})
+
+local IceKA1 = false
+
+icegb:AddToggle({
+    Name = '1st Ice Atk KA',
+    Default = false,
+    Callback = function(state)
+        IceKA1 = state
+        task.spawn(function()
+            while IceKA1 do
+                local target = findMob(true)
+                if target then
+                    local args = {
+                        [1] = "skil_ting_asd",
+                        [2] = player,
+                        [3] = "ice_demon_art_wintry_iciles",
+                        [4] = 5
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("To_Server"):WaitForChild("Handle_Initiate_S"):FireServer(unpack(args))
+                    for i = 1, 7 do
+                        local args = {
+                            [1] = "ice_demon_art_wintry_iciles_damage",
+                            [2] = player.Character,
+                            [3] = target:GetModelCFrame()
+                        }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("To_Server"):WaitForChild("Handle_Initiate_S"):FireServer(unpack(args))
+                    end
+                    task.wait(15)
+                end
+                task.wait()
+            end
+        end)
+    end
+})
+
 
 --misc tab
 
-local miscgb = Tabs['Misc']:AddLeftGroupbox('Misc')
-miscgb:AddToggle('no vfx', {
-    Text = 'remove the fx of the attack',
+local miscgb = Misc:AddSection({
+	Name = "Misc"
+})
+miscgb:AddToggle({
+    Name = 'Remove FX',
     Default = false,
-    Tooltip = 'good to save cpu and be less laggy',
-
     Callback = function(state)
         if state then
             vfx.Parent = nil
@@ -632,72 +807,67 @@ miscgb:AddToggle('no vfx', {
 })
 
 miscgb:AddButton({
-    Text = 'Delete map, PERF BOOST',
-    Func = function()
+    Name = 'Delete map, PERF BOOST',
+    Callback = function()
         workspace.Map:Destroy()
-
-    end,
-    DoubleClick = true,
-    Tooltip = 'delete the entire map (use for long farm so you dont lag)'
+        workspace.Terrain.Water_Regions:Destroy()
+    end
 })
 
-miscgb:AddToggle('always day', {
-    Text = 'always day (visual only)',
-    Default = false,
-    Tooltip = 'demon still spawn dont worry',
 
+miscgb:AddToggle({
+    Name = 'always day (visual only)',
+    Default = false,
     Callback = function(state)
-        if state then
-            day = game:GetService("RunService").Stepped:Connect(function()
-                workspace.DayNNight.Value = 10
+        alwaysday = state
+        if state then 
+            task.spawn(function()
+                while alwaysday do
+                    workspace.DayNNight.Value = 10
+                    task.wait()
+                end
             end)
-        else
-            day:Disconnect()
         end
     end
 })
 
 
-local wbhook = Tabs['Misc']:AddLeftGroupbox('Webhook')
-wbhook:AddInput('WebHook', {
-    Default = nil,
-    Numeric = false,
-    Finished = false,
-
-    Text = 'Webhook',
-    Tooltip = nil,
-
-    Placeholder = 'Waiting For Your Webhook',
-    
-
-    Callback = function(Value)
-        webhook = Value
-        print(webhook)
-    end
+local wbhook = WebHook:AddSection({
+	Name = "Webhook Settings"
 })
 
-wbhook:AddToggle('webhook tog', {
-    Text = 'send a message when you get a drop',
+wbhook:AddTextbox({
+	Name = "webhook url",
+	Default = "enter url",
+	TextDisappear = true,
+	Callback = function(Value)
+        webhook = Value
+	end	  
+})
+
+wbhook:AddToggle({
+    Text = 'webhook tog',
     Default = false,
-    Tooltip = 'make sure you entered the good url',
 
     Callback = function(state)
         webhooktog = state
     end
 })
 
-local teleportgb = Tabs['Misc']:AddRightGroupbox('Teleport')
+local teleportgb = Misc:AddSection({
+	Name = "Teleport"
+})
 
 teleportgb:AddButton({
-    Text = 'Rejoin',
-    Func = function()
+    Name = 'Rejoin',
+    Callback = function()
         tpservice:TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
     end,
-    DoubleClick = true,
-    Tooltip = 'double click to rejoin'
+
 })
 
 -- DUNGEON TAB
+--[[
 local orbgb = Tabs['Dungeon']:AddLeftGroupbox('Orbs')
 
 orbgb:AddDropdown('Select Orb ', {
@@ -788,43 +958,38 @@ dungutilgb:AddButton({
     DoubleClick = false,
     Tooltip = nil
 })
-
+]]
 
 -- BUFF TAB
 
-local godmodegb = Tabs['Buffs']:AddLeftGroupbox('God Mode')
-
-godmodegb:AddDropdown('godmode method ', {
-    Values = {
-    "Scythe -- Mas 28 + Equipped",
-    "Water Breathing -- Mas 1",
-    "Insect Breating -- Mas 28", 
-    "Blood Burst Bda -- Mas 20", 
-    "Wind Breathing -- Mas 30",
-    "Snow Breathing -- Mas 1", 
-    "Flame Breathing -- Mas 32",
-    "Beast Breathing -- Mas 40", 
-    "Shockwave Bda -- Mas 44",
-    "Dream Bda -- Ult Unlocked", 
-    "Swamp Bda -- Ult Unlocked", 
-    "Sound Breathing -- Mas 50",
-    "Ice Bda -- Ult Unlocked"},
-    Default = 0,
-    Multi = false,
-
-    Text = 'Select the Method you want',
-    Tooltip = 'cant use with arrow ka',
-
-    Callback = function(Value)
-        updgodmode(Value)
-
-    end
+local godmodegb = Buffs:AddSection({
+	Name = "God Mode"
+})
+godmodegb:AddDropdown({
+	Name = "Select the Method you want",
+	Default = nil,
+	Options = {
+        "Scythe -- Mas 28 + Equipped",
+        "Water Breathing -- Mas 1",
+        "Insect Breating -- Mas 28", 
+        "Blood Burst Bda -- Mas 20", 
+        "Wind Breathing -- Mas 30",
+        "Snow Breathing -- Mas 1", 
+        "Flame Breathing -- Mas 32",
+        "Beast Breathing -- Mas 40", 
+        "Shockwave Bda -- Mas 44",
+        "Dream Bda -- Ult Unlocked", 
+        "Swamp Bda -- Ult Unlocked", 
+        "Sound Breathing -- Mas 50",
+        "Ice Bda -- Ult Unlocked"},
+	Callback = function(Value)
+		updgodmode(Value)
+	end    
 })
 
-godmodegb:AddToggle('GodMode', {
+godmodegb:AddToggle({
     Text = 'GodMode',
     Default = false,
-    Tooltip = 'select an option above ',
 
     Callback = function(Value)
         if Value then
@@ -835,17 +1000,71 @@ godmodegb:AddToggle('GodMode', {
     end
 })
 
-local buffgb = Tabs['Buffs']:AddRightGroupbox('Buffs')
+local buffgb = Buffs:AddSection({
+	Name = "Buffs"
+})
+
 
 buffgb:AddButton({
-    Text = 'inf war drum (dont need fans)',
-    Func = function()
-    local remote = game:GetService("ReplicatedStorage").Remotes.war_Drums_remote
+    Name = "ThunderMode [Human]",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.thundertang123:FireServer(true)
+    end
+})
+buffgb:AddButton({
+    Name = "Mist Clone",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.immense_reflexes_asd123:FireServer()
+    end
+})
+buffgb:AddButton({
+    Name = "Rengoku Mode [Human]",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.heart_ablaze_mode_remote:FireServer(true)
+    end
+})
+buffgb:AddButton({
+    Name = "God Kamado [Kamado Clan]",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.heal_tang123asd:FireServer(true)
+    end
+})
+buffgb:AddButton({
+    Name = "WarDrums [Damage+Speed Boost]",
+    Callback = function()
+        local remote = game:GetService("ReplicatedStorage").Remotes.war_Drums_remote
+
     while true do
         remote:FireServer(true)
-        task.wait(20)
+        wait(20)
     end
-    end,
-    DoubleClick = false,
-    Tooltip = 'free buff you should always use it'
+    end
+})
+buffgb:AddButton({
+    Name = "Health Regen",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.regeneration_breathing_remote:FireServer(true)
+    end
+})
+buffgb:AddButton({
+    Name = "Sun Immunity",
+    Callback = function()
+        game:GetService("Players").LocalPlayer.PlayerScripts.Small_Scripts.Gameplay.Sun_Damage.Disabled = true
+    end
+})
+buffgb:AddButton({
+    Name = "Furiosity",
+    Callback = function()
+        while true do
+            print("Toggle On")
+            game:GetService("ReplicatedStorage").Remotes.clan_furiosity_add:FireServer(true)
+            wait(24)
+        end
+    end
+})
+buffgb:AddButton({
+    Name = "Spacial Awareness",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.spacial_awareness_remote:FireServer(true)
+    end
 })
